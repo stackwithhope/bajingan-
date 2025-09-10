@@ -1,4 +1,4 @@
-name: Build APK (Definitive Fix based on Analysis)
+name: Build APK (FINAL FIX - Gradle Version Lock)
 
 on:
   push:
@@ -12,33 +12,30 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Kita tetap pakai JDK 17, ini tidak masalah
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    # Langkah 1: DEBUGGING (Sesuai saran Anda)
-    # Kita cek dulu isi folder untuk memastikan semuanya ada
-    - name: Verify that files exist
-      run: ls -l content/FloatingKeyboard
+    # --- INI BAGIAN PALING PENTING ---
+    # Kita paksa workflow untuk menggunakan Gradle v7.5.1
+    # yang 100% cocok dengan Android Gradle Plugin di proyek Anda.
+    - name: Setup and Lock Gradle Version
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '7.5.1'
 
-    # Langkah 2: PERBAIKAN (Sesuai saran Anda)
-    # Kita paksa buat ulang file gradlew yang bersih untuk menggantikan yang rusak
-    - name: Regenerate a clean Gradle Wrapper
-      # Kita tidak perlu `cd`, perintah gradle bisa menargetkan direktori
-      run: gradle wrapper --gradle-version 7.4.2 --project-dir content/FloatingKeyboard
-
-    # Langkah 3: BUILD
-    # Sekarang kita build menggunakan gradlew yang 100% baru dan bersih
-    - name: Build APK with the clean gradlew
+    # Sekarang kita build. Tidak perlu regenerate wrapper lagi
+    # karena kita sudah pakai versi Gradle yang benar.
+    - name: Build APK with Gradle
       run: |
         cd content/FloatingKeyboard
         chmod +x ./gradlew
         bash ./gradlew assembleDebug
 
-    # Langkah 4: UPLOAD
-    # Upload hasil APK
+    # Upload APK
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
