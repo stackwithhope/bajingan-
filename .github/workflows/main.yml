@@ -1,0 +1,46 @@
+name: Build APK (Definitive Fix based on Analysis)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # Langkah 1: DEBUGGING (Sesuai saran Anda)
+    # Kita cek dulu isi folder untuk memastikan semuanya ada
+    - name: Verify that files exist
+      run: ls -l content/FloatingKeyboard
+
+    # Langkah 2: PERBAIKAN (Sesuai saran Anda)
+    # Kita paksa buat ulang file gradlew yang bersih untuk menggantikan yang rusak
+    - name: Regenerate a clean Gradle Wrapper
+      # Kita tidak perlu `cd`, perintah gradle bisa menargetkan direktori
+      run: gradle wrapper --gradle-version 7.4.2 --project-dir content/FloatingKeyboard
+
+    # Langkah 3: BUILD
+    # Sekarang kita build menggunakan gradlew yang 100% baru dan bersih
+    - name: Build APK with the clean gradlew
+      run: |
+        cd content/FloatingKeyboard
+        chmod +x ./gradlew
+        bash ./gradlew assembleDebug
+
+    # Langkah 4: UPLOAD
+    # Upload hasil APK
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bajingan-apk
+        path: content/FloatingKeyboard/app/build/outputs/apk/debug/app-debug.apk
